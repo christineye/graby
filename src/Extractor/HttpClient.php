@@ -39,6 +39,9 @@ class HttpClient
                 '.m.wikipedia.org' => ['.m.wikipedia.org' => '.wikipedia.org'],
                 'm.vanityfair.com' => ['m.vanityfair.com' => 'www.vanityfair.com'],
             ],
+            'add_params' => [
+                'archiveofourown.org' => 'view_adult=true'
+            ],
             // Prevent certain file/mime types
             // HTTP responses which match these content types will
             // be returned without body.
@@ -165,7 +168,7 @@ class HttpClient
 
         $body = (string) $response->getBody();
 
-        // be sure to remove conditional comments for IE around the html tag
+        // be sure to remove conditional comments for IE
         // we only remove conditional comments until we found the <head> tag
         // they usually contains the <html> tag which we try to found and replace the last occurence
         // with the whole conditional comments
@@ -180,16 +183,6 @@ class HttpClient
                 if (!empty($htmlTag)) {
                     $body = str_replace($matchesConditional[0], $htmlTag . '<head>', $body);
                 }
-            }
-        }
-
-        // be sure to remove ALL other conditional comments for IE
-        // (regex found here: https://stackoverflow.com/a/137831/569101)
-        preg_match_all('/<!--\[if\s(?:[^<]+|<(?!!\[endif\]-->))*<!\[endif\]-->/mi', $body, $matchesConditional);
-
-        if (isset($matchesConditional[0]) && count($matchesConditional[0]) > 1) {
-            foreach ($matchesConditional as $conditionalComment) {
-                $body = str_replace($conditionalComment, '', $body);
             }
         }
 
@@ -237,6 +230,20 @@ class HttpClient
         foreach ($this->config['rewrite_url'] as $find => $action) {
             if (false !== strpos($url, $find) && is_array($action)) {
                 $url = strtr($url, $action);
+            }
+        }
+
+        foreach ($this->config['add_params'] as $find => $param) {
+            if (false !== strpos($url, $find)) {
+
+                if (false !== strpos($url, '?'))
+                {
+                    $url = $url . '&' . $param;
+                }
+                else
+                {
+                    $url = $url . '?' . $param;
+                }
             }
         }
 
