@@ -253,10 +253,6 @@ class Graby
 
         $html = $this->convert2Utf8($response['body'], $response['all_headers']);
 
-        // Remove empty nodes (except iframe)
-        $re = '/<([^>\s]+)[^iframe|>]*>(?:\s*(?:<br \/>|&nbsp;|&thinsp;|&ensp;|&emsp;|&#8201;|&#8194;|&#8195;)\s*)*<\/\1>/m';
-        $html = preg_replace($re, '', $html);
-
         // some non utf8 enconding might be breaking after converting to utf8
         // when it happen the string (usually) starts with this character
         // in that case, we'll take the default response instead of the utf8 forced one
@@ -783,7 +779,7 @@ class Graby
      *
      * @return string
      */
-    private function getExcerpt($text, $length = 250, $separator = ' &hellip;')
+    private function getExcerpt($text, $length = 250, $separator = ' ...')
     {
         // use regex instead of strip_tags to left some spaces when removing tags
         $text = preg_replace('#<[^>]+>#', ' ', $text);
