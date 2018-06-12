@@ -339,6 +339,23 @@ class ContentExtractor
 
         $this->removeElements($elems, 'Stripping {length} empty a elements');
 
+        // try to get summary
+        foreach ($this->siteConfig->summary as $pattern) {
+            $this->logger->log('debug', 'Trying {pattern} for summary (content length: {content_length})', ['pattern' => $pattern, 'content_length' => strlen($this->readability->dom->savexml())]);
+
+            $res = $this->extractSummary(
+                true,
+                $pattern,
+                $this->readability->dom,
+                'XPath'
+            );
+
+            // this mean we have *found* a body, so we don't need to continue
+            if (false === $res) {
+                break;
+            }
+        }
+
         // try to get body
         foreach ($this->siteConfig->body as $pattern) {
             $this->logger->log('debug', 'Trying {pattern} for body (content length: {content_length})', ['pattern' => $pattern, 'content_length' => strlen($this->readability->dom->savexml())]);
@@ -636,6 +653,11 @@ class ContentExtractor
         return $this->authors;
     }
 
+    public function getSummary()
+    {
+        return $this->summary;
+    }
+
     public function getLanguage()
     {
         return $this->language;
@@ -927,6 +949,47 @@ class ContentExtractor
 
         return false;
     }
+
+
+    /**
+     * Extract body from a given CSS for a node.
+     *
+     * @param bool     $detectBody      Do we have to detect body ?
+     * @param string   $xpathExpression XPath expression to extract body
+     * @param \DOMNode $node            DOMNode to look into
+     * @param string   $type            Format type we are looking for, only used for log message
+     *
+     * @return bool Telling if we have to detect body again or not
+     */
+    private function extractSummary($detectBody, $xpathExpression, \DOMNode $node, $type)
+    {
+        if (false === $detectBody) {
+            return false;
+        }
+
+        $elems = $this->xpath->query($xpathExpression, $node);
+
+        if (false === $this->hasElements($elems)) {
+            return $detectBody;
+        }
+
+        $this->logger->log('debug', $type . ': found "' . $elems->length . '" with ' . $xpathExpression);
+
+
+        $this->summary = '';
+        $this->logger->log('debug', '{nb} summary elems found', ['nb' => $elems->length]);
+        $len = 0;
+
+        foreach ($elems as $elem) {
+
+            $this->summary .= $elem->innerHTML;
+        }
+
+        $this->logger->log('debug', '...{len} elements added to summary', ['len' => $len]);
+
+        return false;
+    }
+
 
     /**
      * Return an instance of Readability with pre & post filters added.

@@ -20,6 +20,10 @@ class SiteConfig
     // Use first matching element as body (0 or more xpath expressions)
     public $body = [];
 
+    // Use first matching element as summary (0 or more xpath expressions)
+    public $summary = [];
+
+
     // Use first matching element as author (0 or more xpath expressions)
     public $author = [];
 

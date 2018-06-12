@@ -22,7 +22,7 @@ use TrueBV\Punycode;
  */
 class Graby
 {
-    private $debug = false;
+    private $debug = true;
     private $logger;
 
     private $config = [];
@@ -143,7 +143,11 @@ class Graby
         $infos = $this->doFetchContent($url);
 
         // generate summary
-        $infos['summary'] = $this->getExcerpt($infos['html']);
+        if ($infos['summary'] == null || mb_strlen($infos['summary']) == 0)
+        {
+            $infos['summary'] = $this->getExcerpt($infos['html']);
+        }
+
 
         return $infos;
     }
@@ -294,6 +298,8 @@ class Graby
         $extractedLanguage = $this->extractor->getLanguage();
         $extractedDate = $this->extractor->getDate();
         $extractedAuthors = $this->extractor->getAuthors();
+        $summary = $this->extractor->getSummary();
+
 
         // in case of no language were found, try using headers Content-Language
         if (empty($extractedLanguage) && !empty($response['all_headers']['content-language'])) {
@@ -381,6 +387,7 @@ class Graby
             'open_graph' => $ogData,
             'native_ad' => $this->extractor->isNativeAd(),
             'all_headers' => $response['all_headers'],
+            'summary' => $summary,
         ];
 
         // if we failed to extract content...
