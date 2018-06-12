@@ -234,7 +234,7 @@ class HttpClient
         }
 
         foreach ($this->config['add_params'] as $find => $param) {
-            if (false !== strpos($url, $find)) {
+            if (false !== strpos($url, $find) && false == strpos($url, $param)) {
 
                 if (false !== strpos($url, '?'))
                 {
